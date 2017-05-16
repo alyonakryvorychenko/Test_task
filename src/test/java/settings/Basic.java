@@ -1,16 +1,10 @@
 package settings;
 
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.ie.InternetExplorerDriver;
-import org.openqa.selenium.support.events.EventFiringWebDriver;
-import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Parameters;
-
-import java.io.File;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
@@ -56,6 +50,7 @@ public class Basic {
 
     @BeforeClass
     public void setUp() {
+        driver= getDriver();
         driver.manage().timeouts().implicitlyWait(15, TimeUnit.SECONDS);
         driver.manage().timeouts().pageLoadTimeout(30, TimeUnit.SECONDS);
         driver.manage().window().maximize();
