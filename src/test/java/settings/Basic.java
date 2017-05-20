@@ -4,6 +4,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.ie.InternetExplorerDriver;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
@@ -50,7 +51,8 @@ public class Basic {
 
     @BeforeClass
     public void setUp() {
-        driver= getDriver();
+        log("Initialize WebDriver");
+        driver = getDriver();
         driver.manage().timeouts().implicitlyWait(15, TimeUnit.SECONDS);
         driver.manage().timeouts().pageLoadTimeout(30, TimeUnit.SECONDS);
         driver.manage().window().maximize();
@@ -59,5 +61,13 @@ public class Basic {
 
     public static void log(String message) {
         System.out.println(message);
+    }
+
+    @AfterClass
+    public void tearDown() {
+        if (driver != null) {
+            log("Quit WebDriver");
+            driver.quit();
+        }
     }
 }
