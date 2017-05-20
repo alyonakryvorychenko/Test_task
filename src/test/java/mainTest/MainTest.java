@@ -13,10 +13,10 @@ import settings.GeneralActions;
  */
 public class MainTest extends Basic {
 
-    public By loginFormLocator = By.id("signin-email");
-    public By profileBlockLocator = By.className("dashboard dashboard-left");
+    public By loginFormLocator = By.xpath("//div[@class='front-signin js-front-signin']");
     public By profileIconLocator = By.id("user-dropdown-toggle");
     public By logoutButton = By.xpath("//li[@id='signout-button']/button");
+    public By tweetsNumberLocator = By.xpath("(//span/@data-count)[1]");
 
     GeneralActions actions = new GeneralActions();
 
@@ -24,27 +24,46 @@ public class MainTest extends Basic {
     public Object[][] loginToAdmin() {
         return new Object[][] {
                 { "second10020@gmail.com","123456789"},
-                { "",""},
         };
     }
 
     @Test(dataProvider = "credentials")
-    public void main(String login, String password) {
+    public void main(String login, String password) throws InterruptedException {
         log("open the twitter site");
         driver.get("https://twitter.com/");
         log("make sure that login form is displayed");
-        Assert.assertNotNull(loginFormLocator, "The 'login' form isn't displayed");
+        Assert.assertTrue(driver.findElement(loginFormLocator).isDisplayed(), "The 'login' form isn't displayed");
 
         log("Enter user's credentials");
         actions.loginToSite(login, password);
-        Assert.assertNotNull(profileBlockLocator, "User isn't login to the site");
+        Thread.sleep(3000);
+        Assert.assertTrue(driver.findElement(profileIconLocator).isDisplayed(), "User isn't login to the site");
 
         log("Logout");
         WebElement profileIcon = driver.findElement(profileIconLocator);
         profileIcon.click();
         WebElement logout = driver.findElement(logoutButton);
         logout.click();
-        Assert.assertNull(loginFormLocator,"user isn't logout from site");
+        Assert.assertTrue(driver.findElement(By.xpath("//div[@class='global-nav-inner']//a[@href='/login']/span")).isDisplayed(),"user isn't logout from site");
+
+    }
+
+    @Test(dataProvider = "credentials")
+    public void test2 (String login, String password) throws InterruptedException {
+        log("open the twitter site");
+        driver.get("https://twitter.com/");
+        log("make sure that login form is displayed");
+        Assert.assertTrue(driver.findElement(loginFormLocator).isDisplayed(), "The 'login' form isn't displayed");
+
+        log("Enter user's credentials");
+        actions.loginToSite(login, password);
+        Thread.sleep(3000);
+        Assert.assertTrue(driver.findElement(profileIconLocator).isDisplayed(), "User isn't login to the site");
+
+        log("Memorize the numbers of tweets");
+        String tweetsNumber = driver.findElement(tweetsNumberLocator).getText();
+        System.out.println(tweetsNumber);
+
     }
 
 

@@ -22,9 +22,9 @@ public class GeneralActions {
         loginInput.sendKeys(login);
         WebElement passwordInput = driver.findElement(passwordInputLocator);
         passwordInput.sendKeys(password);
-        WebElement loginButton =driver.findElement(loginButtonLocator);
+        WebElement loginButton = driver.findElement(loginButtonLocator);
         loginButton.click();
+
 
     }
 }
-
