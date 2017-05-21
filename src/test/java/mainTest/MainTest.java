@@ -1,12 +1,15 @@
 package mainTest;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import settings.Basic;
 import settings.GeneralActions;
+
+import java.sql.Timestamp;
 
 /**
  * Created by Alenka on 14.05.2017.
@@ -25,10 +28,15 @@ public class MainTest extends Basic {
     public By tweetPollLocator = By.xpath("//div[@class='modal-tweet-form-container']//div[@class='PollCreator']");
     public By tweetGeoLocator = By.xpath("//div[@class='modal-tweet-form-container']//div[@class='geo-picker dropdown']");
     public By tweetTweetButtonLocator = By.xpath("//div[@class='modal-tweet-form-container']//button[contains(@class,'js-tweet-btn')]");
-    public By tweetConterLocator = By.xpath("//div[@class='modal-tweet-form-container']//span[@class='tweet-counter']");
-
-
-
+    public By tweetCounterLocator = By.xpath("//div[@class='modal-tweet-form-container']//span[contains(@class,'tweet-counter')]");
+    public By tweetTextLocator = By.xpath("//div[@class='tweet-content']//div[@id='tweet-box-global']");
+    public By createTweetLocator = By.xpath("//div[@class='TweetBoxToolbar']//button[contains(@class,'tweet-action tweet-btn')]/span[1]");
+    public By tweetTextFeedLocator = By.xpath("(//div[@class='stream']//li//div[@class='js-tweet-text-container'])[1]");
+    public By followingLocator = By.xpath("(//span[@class='ProfileCardStats-statValue'])[2]");
+    public By followButtonLocator = By.xpath("(//button[contains (@class, 'user-actions-follow-button')])[1]/span[1]");
+    public By viewAllButtonLocator = By.xpath("//a[contains (@class, 'js-view-all-link')]");
+    public By followerProfileLinkLocator = By.xpath("(//div[@class='ProfileCard-content']/a)[1]");
+    public By dateTweetLocator = By.xpath("(//span[@class='_timestamp js-short-timestamp'])[i]");
 
     GeneralActions actions = new GeneralActions();
 
@@ -39,7 +47,7 @@ public class MainTest extends Basic {
         };
     }
 
-    /*@Test(dataProvider = "credentials")
+    @Test(dataProvider = "credentials", enabled = false)
     public void main(String login, String password) throws InterruptedException {
         log("open the twitter site");
         driver.get("https://twitter.com/");
@@ -58,10 +66,10 @@ public class MainTest extends Basic {
         logout.click();
         Assert.assertTrue(driver.findElement(By.xpath("//div[@class='global-nav-inner']//a[@href='/login']/span")).isDisplayed(),"user isn't logout from site");
 
-    }*/
+    }
 
-    @Test(dataProvider = "credentials")
-    public void test2 (String login, String password) throws InterruptedException {
+    @Test(dataProvider = "credentials", enabled = false)
+    public void createTweetTest (String login, String password) throws InterruptedException {
         log("open the twitter site");
         driver.get("https://twitter.com/");
         log("make sure that login form is displayed");
@@ -75,9 +83,9 @@ public class MainTest extends Basic {
         log("Memorize the numbers of tweets");
         String tweetsNumber = driver.findElement(tweetsNumberLocator).getText();
         System.out.println(tweetsNumber);
+        int tweetAmount = Integer.parseInt(tweetsNumber);
 
         log("Click the 'Tweet' button");
-        actions.waitForContentLoad(tweetsButtonLocator);
         WebElement tweetButton = driver.findElement(tweetsButtonLocator);
         tweetButton.click();
 
@@ -88,17 +96,87 @@ public class MainTest extends Basic {
         Assert.assertTrue(driver.findElement(tweetGifLocator).isDisplayed(), "'Gif' button isn't displayed");
         Assert.assertTrue(driver.findElement(tweetPollLocator).isDisplayed(), "'Poll' button isn't displayed");
         Assert.assertTrue(driver.findElement(tweetGeoLocator).isDisplayed(), "'GEO' button isn't displayed");
-        Assert.assertTrue(driver.findElement(tweetConterLocator).isDisplayed(), "The tweet counter isn't displayed");
+        Assert.assertTrue(driver.findElement(tweetCounterLocator).isDisplayed(), "The tweet counter isn't displayed");
 
         log("Check that 'Tweet' button isn't active");
         WebElement tweetTweetButton = driver.findElement(tweetTweetButtonLocator);
         Assert.assertNotNull(tweetTweetButton.getAttribute("disabled"), "The 'Tweet' button is enabled");
 
-        log("Enter text of tweet");
-        String maxValueCounter = driver.findElement(tweetConterLocator).getText();
+        log("Create text for tweet");
+        String maxValueCounter = driver.findElement(tweetCounterLocator).getText();
         int valueCounter = Integer.parseInt(maxValueCounter);
-        actions.generateRandomString(valueCounter-1);
-        System.out.println("Entered data:" + actions.generateRandomString(valueCounter-1));
+        valueCounter = valueCounter - 5;
+        String tweetText = actions.generateRandomString(valueCounter);
+
+        log("Enter text of tweet");
+        driver.findElement(tweetTextLocator).sendKeys(tweetText);
+        log("Memorise new value of counter");
+        String newValueCounter = driver.findElement(tweetCounterLocator).getText();
+        int newCounter = Integer.parseInt(newValueCounter);
+
+        log("Check that value of counter is decreased by difference max value of counter and of entered symbols");
+        Assert.assertEquals(newCounter, 5, "The counter isn't decreased");
+
+        log("Check that 'Tweet' button is active ");
+        Assert.assertNull(tweetTweetButton.getAttribute("disabled"), "The 'Tweet' button is disabled");
+
+        log("Create tweet");
+        WebElement createTweet = driver.findElement(createTweetLocator);
+        createTweet.click();
+
+        log("Check that 'Creation pop-up isn't displayed'");
+        Thread.sleep(4000);
+        Assert.assertFalse(driver.findElement(tweetModalWinLocator).isDisplayed(), "'Tweet' modal window is displayed");
+
+        log("Created tweet is displayed in news feed");
+        String checkTextTweet = driver.findElement(tweetTextFeedLocator).getText();
+        System.out.println(checkTextTweet);
+        Assert.assertEquals(checkTextTweet, tweetText);
+
+        log("Refresh the page");
+        driver.navigate().refresh();
+//        actions.waitForContentLoad(tweetsNumberLocator);
+
+        log("Check that number of tweet is increased by 1");
+        String newTweetNumber = driver.findElement(tweetsNumberLocator).getText();
+        int newTweetAmount = Integer.parseInt(newTweetNumber);
+        System.out.println(newTweetAmount);
+        Assert.assertEquals(newTweetAmount, tweetAmount+1, "Total amount of tweets is increased by 1");
+    }
+
+    @Test(dataProvider = "credentials")
+    public void retweetTest(String login, String password) throws InterruptedException {
+        log("open the twitter site");
+        driver.get("https://twitter.com/");
+        log("make sure that login form is displayed");
+        Assert.assertTrue(driver.findElement(loginFormLocator).isDisplayed(), "The 'login' form isn't displayed");
+
+        log("Enter user's credentials");
+        actions.loginToSite(login, password);
+        Thread.sleep(3000);
+        Assert.assertTrue(driver.findElement(profileIconLocator).isDisplayed(), "User isn't login to the site");
+
+        log("Check that user has followers");
+        try{
+            driver.findElement(followingLocator).click();
+        }catch (NoSuchElementException e){
+            log("User has no followers. Follow the new one.");
+            driver.findElement(followButtonLocator).click();
+            driver.get("https://twitter.com/");
+            driver.findElement(followingLocator).click();
+        }
+        driver.findElement(followerProfileLinkLocator).click();
+
+        log("find tweet with created date more than 1 day compare with current date");
+        for (int i = 1; i++){
+
+        }
+
+        //compare current date with tweet day
+
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        Timestamp timestamp2 = new Timestamp(1495223084000L);
+        System.out.println(actions.getDaysBetween(timestamp2, timestamp));
     }
 
 
