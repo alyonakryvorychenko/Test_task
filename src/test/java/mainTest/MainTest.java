@@ -2,6 +2,7 @@ package mainTest;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebElement;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
@@ -9,7 +10,12 @@ import org.testng.annotations.Test;
 import settings.Basic;
 import settings.GeneralActions;
 
+import java.sql.Time;
 import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Created by Alenka on 14.05.2017.
@@ -34,9 +40,9 @@ public class MainTest extends Basic {
     public By tweetTextFeedLocator = By.xpath("(//div[@class='stream']//li//div[@class='js-tweet-text-container'])[1]");
     public By followingLocator = By.xpath("(//span[@class='ProfileCardStats-statValue'])[2]");
     public By followButtonLocator = By.xpath("(//button[contains (@class, 'user-actions-follow-button')])[1]/span[1]");
-    public By viewAllButtonLocator = By.xpath("//a[contains (@class, 'js-view-all-link')]");
-    public By followerProfileLinkLocator = By.xpath("(//div[@class='ProfileCard-content']/a)[1]");
+    public By followerProfileLinkLocator = By.xpath("(//a[contains(@class,'ProfileCard-bg')])[1]");
     public By dateTweetLocator = By.xpath("(//span[@class='_timestamp js-short-timestamp'])[i]");
+    public By tweetsListLocator = By.xpath("//div[contains(@class, 'js-stream-tweet')]");
 
     GeneralActions actions = new GeneralActions();
 
@@ -158,6 +164,7 @@ public class MainTest extends Basic {
 
         log("Check that user has followers");
         try{
+            log("User has followers. Open followers list.");
             driver.findElement(followingLocator).click();
         }catch (NoSuchElementException e){
             log("User has no followers. Follow the new one.");
@@ -165,18 +172,40 @@ public class MainTest extends Basic {
             driver.get("https://twitter.com/");
             driver.findElement(followingLocator).click();
         }
+        log("Open the first follower from the list");
         driver.findElement(followerProfileLinkLocator).click();
 
-        log("find tweet with created date more than 1 day compare with current date");
-        for (int i = 1; i++){
+        log("Get number of tweets on the page");
+        int tweetsQty = driver.findElements(tweetsListLocator).size();
+        String timestampString;
 
+        log("Find tweet with created date more than 1 day compare with current date");
+        for (int i = 1; i < tweetsQty + 1; i++){
+            timestampString = driver.findElement(By.xpath("(//div[@id='timeline']//small[@class='time']//span)[" + i + "]"))
+                    .getAttribute("data-time");
+            //compare current date with tweet day
+
+            System.out.println("timestampString: " + timestampString);
+
+//            Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            Date date = new Date();
+            System.out.println(dateFormat.format(date));
+
+            Timestamp timestamp = Timestamp.valueOf(dateFormat.format(date));
+            Timestamp timestamp2 = new Timestamp(Long.valueOf(timestampString));
+            System.out.println("current timestamp: " + timestamp);
+            System.out.println("found timestamp: " + timestamp2);
+            System.out.println(actions.getDaysBetween(timestamp2, timestamp));
+
+            if (actions.getDaysBetween(timestamp2, timestamp) > 0) {
+                System.out.println("Click Retweet button");
+                driver.findElement(By.xpath("(//div[contains(@class, 'js-stream-tweet')]//button[contains(@class, 'js-actionRetweet')])[" + i + "]")).click();
+                break;
+            }
         }
 
-        //compare current date with tweet day
 
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        Timestamp timestamp2 = new Timestamp(1495223084000L);
-        System.out.println(actions.getDaysBetween(timestamp2, timestamp));
     }
 
 

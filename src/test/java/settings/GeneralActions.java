@@ -44,7 +44,6 @@ public class GeneralActions {
     }
     public int getDaysBetween (Timestamp start, Timestamp end)   {
 
-        System.out.println("date values: " + start + " ::: " + end);
         boolean negative = false;
         if (end.before(start))  {
             negative = true;
