@@ -177,28 +177,25 @@ public class MainTest extends Basic {
 
         log("Get number of tweets on the page");
         int tweetsQty = driver.findElements(tweetsListLocator).size();
+        System.out.println(tweetsQty);
         String timestampString;
+
 
         log("Find tweet with created date more than 1 day compare with current date");
         for (int i = 1; i < tweetsQty + 1; i++){
             timestampString = driver.findElement(By.xpath("(//div[@id='timeline']//small[@class='time']//span)[" + i + "]"))
-                    .getAttribute("data-time");
+                    .getAttribute("data-time-ms");
             //compare current date with tweet day
 
             System.out.println("timestampString: " + timestampString);
 
-//            Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-            Date date = new Date();
-            System.out.println(dateFormat.format(date));
-
-            Timestamp timestamp = Timestamp.valueOf(dateFormat.format(date));
+            Timestamp timestamp = new Timestamp(System.currentTimeMillis());
             Timestamp timestamp2 = new Timestamp(Long.valueOf(timestampString));
             System.out.println("current timestamp: " + timestamp);
             System.out.println("found timestamp: " + timestamp2);
             System.out.println(actions.getDaysBetween(timestamp2, timestamp));
 
-            if (actions.getDaysBetween(timestamp2, timestamp) > 0) {
+            if (actions.getDaysBetween(timestamp2, timestamp) > 1) {
                 System.out.println("Click Retweet button");
                 driver.findElement(By.xpath("(//div[contains(@class, 'js-stream-tweet')]//button[contains(@class, 'js-actionRetweet')])[" + i + "]")).click();
                 break;
