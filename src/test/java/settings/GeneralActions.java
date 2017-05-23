@@ -42,6 +42,12 @@ public class GeneralActions {
     public void waitForContentLoad(By locator) {
         wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
     }
+
+    public void waitForElementDisplayed(By locator) {
+        wait.until(ExpectedConditions.elementToBeClickable(locator));
+    }
+
+
     public int getDaysBetween (Timestamp start, Timestamp end)   {
 
         boolean negative = false;

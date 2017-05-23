@@ -44,6 +44,11 @@ public class MainTest extends Basic {
     public By dateTweetLocator = By.xpath("(//span[@class='_timestamp js-short-timestamp'])[i]");
     public By tweetsListLocator = By.xpath("//div[contains(@class, 'js-stream-tweet')]");
 
+    public By retweetBoxHeaderLocator = By.xpath("//form[contains(@class,'RetweetDialog-tweetForm')]");
+    public By retweetBoxButtonLocator = By.xpath("//div[@class='tweet-button']//button//span[@class='Icon Icon--retweet']");
+
+    public By homeButtonLocator = By.xpath("//li[@id='global-nav-home']");
+
     GeneralActions actions = new GeneralActions();
 
     @DataProvider(name = "credentials")
@@ -196,8 +201,25 @@ public class MainTest extends Basic {
             System.out.println(actions.getDaysBetween(timestamp2, timestamp));
 
             if (actions.getDaysBetween(timestamp2, timestamp) > 1) {
-                System.out.println("Click Retweet button");
-                driver.findElement(By.xpath("(//div[contains(@class, 'js-stream-tweet')]//button[contains(@class, 'js-actionRetweet')])[" + i + "]")).click();
+                log("Memorize the number of retweet");
+                String retweetNumber = driver.findElement(By.xpath("(//button[contains(@class,'s-actionRetweet')]//span[@class='ProfileTweet-actionCount'])[" + i + "]")).getAttribute("data-tweet-stat-count");
+                System.out.println(retweetNumber);
+
+                log("Click Retweet button");
+                driver.findElement(By.xpath("(//span[@class='Icon Icon--retweet'])[" + i + "]")).click();
+
+                log("Waiting retweet popup box");
+                Thread.sleep(3000);
+
+                log("Click Retweet button");
+                driver.findElement(retweetBoxButtonLocator).click();
+
+                log("Check the number of retweet is increased by 1");
+
+
+                log("Click Home button");
+                Thread.sleep(3000);
+                driver.findElement(homeButtonLocator).click();
                 break;
             }
         }
